@@ -69,7 +69,7 @@ def parse_program(tokens):
             root["Program"].append(parse_conditional(tokens, token))
         else:
             root["Program"].append(parse_instruction(token, tokens))
-    return root
+    return root, True
 
 def parse_procedure(tokens):
     proc_name = tokens.pop(0)[0]
@@ -110,8 +110,7 @@ if: facing: #north then: [ move: 2 .] else: [ turn: #right . ]
 """
 
 tokens = tokenize_robot_language(robot_code)
-print("Tokens Generados:", tokens)  # Agregar esta línea
-
 if tokens:
-    parse_tree = parse_program(tokens)
-    print("Árbol de Análisis Sintáctico:", parse_tree)  # Agregar esta línea
+    parse_tree, is_valid = parse_program(tokens)
+    print("Árbol Sintáctico:", parse_tree)
+    print("Pertenece al lenguaje:", is_valid)

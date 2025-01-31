@@ -1,3 +1,6 @@
+#Aca determinamos todas las reglas gramaticales que se tienen que tener en cuenta
+#Se habilitan las reglas gramaticales para el lenguaje de programación de robots
+
 GRAMMAR_RULES = {
     "program": ["definitions instructions"],
     "definitions": ["variables | procedures"],
@@ -23,6 +26,8 @@ GRAMMAR_RULES = {
     "number": ["[0-9]+"],
     "identifier": ["[a-zA-Z_][a-zA-Z0-9_]*"]
 }
+
+#En esta parte sw definen las funciones que se van a utilizar para el análisis sintatico
 
 def tokenize_robot_language(code):
     tokens = []
@@ -59,6 +64,7 @@ def tokenize_robot_language(code):
     
     return tokens
 
+#En esta parte se define la funcion que se va a utilizar para el analisis sintatico
 def parse_program(tokens):
     root = {"Program": []}
     while tokens:
@@ -70,6 +76,8 @@ def parse_program(tokens):
         else:
             root["Program"].append(parse_instruction(token, tokens))
     return root, True
+
+#En esta parte se definen las funciones que se van a utiliza
 
 def parse_procedure(tokens):
     proc_name = tokens.pop(0)[0]
@@ -86,6 +94,8 @@ def parse_instruction(token, tokens):
         instr_node["Parameters"].append(tokens.pop(0)[0])
     return instr_node
 
+#Los condiciones se definen en esta parte 
+
 def parse_conditional(tokens, cond_type):
     condition = tokens.pop(0)[0]
     body = []
@@ -97,6 +107,7 @@ def parse_conditional(tokens, cond_type):
         body.append(parse_instruction(tokens.pop(0)[0], tokens))
     return {"Conditional": {"type": cond_type, "condition": condition, "body": body}}
 
+#Se plantea un ejemplo de código de robot para probar el analizador sintático
 robot_code = """
 |x y|
 proc goNorth [ while: canMove: 1 inDir: #north do: [ move: 1 inDir: #north .] ]
@@ -108,7 +119,7 @@ nop .
 repeatTimes: for: 5 repeat: [ move: 1 . ]
 if: facing: #north then: [ move: 2 .] else: [ turn: #right . ]
 """
-
+#Se llama a las funciones para que se ejecute el analizador sintático
 tokens = tokenize_robot_language(robot_code)
 if tokens:
     parse_tree, is_valid = parse_program(tokens)

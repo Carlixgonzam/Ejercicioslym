@@ -1,75 +1,101 @@
-import re
+GRAMMAR_RULES = {
+    "program": ["definitions instructions"],
+    "definitions": ["variables | procedures"],
+    "variables": ["'|' variable_list '|'"],
+    "variable_list": ["identifier ',' variable_list", "identifier"],
+    "procedures": ["procedure procedures", "ε"],
+    "procedure": ["'proc' identifier parameter_list '[' block ']'"],
+    "parameter_list": ["':' identifier param_list", "ε"],
+    "param_list": ["'and' identifier ':' identifier param_list", "ε"],
+    "block": ["instruction block", "ε"],
+    "instructions": ["instruction instructions", "ε"],
+    "instruction": ["command", "assignment", "conditional", "loop", "procedure_call"],
+    "command": ["'move:' number 'inDir:' direction '.'", "'turn:' direction '.'", "'put:' identifier 'ofType:' object_type '.'", "'pick:' identifier 'ofType:' object_type '.'", "'goTo:' number 'with:' number '.'", "'nop.'"],
+    "assignment": ["identifier ':=' expression '.'"],
+    "expression": ["number", "identifier"],
+    "conditional": ["'if:' condition 'then:' '[' block ']' 'else:' '[' block ']'"],
+    "condition": ["'facing:' direction", "'canMove:' number 'inDir:' direction", "'canPut:' number 'ofType:' object_type", "'canPick:' number 'ofType:' object_type", "'not:' condition"],
+    "loop": ["'while:' condition 'do:' '[' block ']'"],
+    "procedure_call": ["identifier argument_list '.'"],
+    "argument_list": ["':' expression argument_list", "ε"],
+    "object_type": ["'#chips'", "'#balloons'"],
+    "direction": ["'#north'", "'#south'", "'#west'", "'#east'"],
+    "number": ["[0-9]+"],
+    "identifier": ["[a-zA-Z_][a-zA-Z0-9_]*"]
+}
 
 def tokenize_robot_language(code):
-    token_patterns = [
-        (r'\b(proc|if:|else:|while:|repeatTimes:)\b', 'KEYWORD'),
-        (r'\b(M|R|C|B|c|b|P);\b', 'COMMAND'),
-        (r'\bJ\(\d+\);\b', 'COMMAND_JUMP'),
-        (r'\bG\(\d+,\d+\);\b', 'COMMAND_GOTO'),
-        (r'\|[a-z0-9 ]+\|', 'VARIABLE_DECLARATION'),
-        (r'\b[a-z][a-zA-Z0-9_]*\b', 'IDENTIFIER'),
-        (r'#\w+', 'CONSTANT'),
-        (r'\:=', 'ASSIGNMENT_OP'),
-        (r'\.', 'DOT'),
-        (r':', 'COLON'),
-        (r'\d+', 'NUMBER'),
-        (r'\s+', None)
-    ]
-    
     tokens = []
-    for pattern, token_type in token_patterns:
-        for match in re.finditer(pattern, code):
-            if token_type:
-                tokens.append((match.group(), token_type))
+    i = 0
+    while i < len(code):
+        char = code[i]
+        
+        if char.isspace():
+            i += 1
+        elif char.isalpha() or char == '_':
+            start = i
+            while i < len(code) and (code[i].isalnum() or code[i] == '_'):
+                i += 1
+            token_value = code[start:i]
+            token_type = 'KEYWORD' if token_value in {'proc', 'if:', 'else:', 'while:', 'repeatTimes:'} else 'IDENTIFIER'
+            tokens.append((token_value, token_type))
+        elif char.isdigit():
+            start = i
+            while i < len(code) and code[i].isdigit():
+                i += 1
+            tokens.append((code[start:i], 'NUMBER'))
+        elif char in {':', '.', '|', '(', ')', '[', ']'}:
+            tokens.append((char, 'SYMBOL'))
+            i += 1
+        elif char == '#':
+            start = i
+            i += 1
+            while i < len(code) and code[i].isalpha():
+                i += 1
+            tokens.append((code[start:i], 'CONSTANT'))
+        else:
+            print(f"Error: Carácter inesperado '{char}'")
+            return None
+    
     return tokens
 
 def parse_program(tokens):
     root = {"Program": []}
     while tokens:
-        if tokens[0][1] == 'VARIABLE_DECLARATION':
-            root["Program"].append(parse_variable(tokens))
-        elif tokens[0][1] == 'KEYWORD' and tokens[0][0] == 'proc':
+        token, token_type = tokens.pop(0)
+        if token_type == 'KEYWORD' and token == 'proc':
             root["Program"].append(parse_procedure(tokens))
-        elif tokens[0][1] in {'COMMAND', 'COMMAND_JUMP', 'COMMAND_GOTO', 'IDENTIFIER'}:
-            root["Program"].append(parse_instruction(tokens))
-        elif tokens[0][1] == 'KEYWORD' and tokens[0][0] in {'if:', 'while:', 'repeatTimes:'}:
-            root["Program"].append(parse_conditional(tokens))
+        elif token_type == 'KEYWORD' and token in {'if:', 'while:', 'repeatTimes:'}:
+            root["Program"].append(parse_conditional(tokens, token))
         else:
-            print(f"Error: Token inesperado '{tokens[0][0]}'")
-            return None
+            root["Program"].append(parse_instruction(token, tokens))
     return root
 
-def parse_variable(tokens):
-    return {"VariableDeclaration": tokens.pop(0)[0]}
-
 def parse_procedure(tokens):
-    tokens.pop(0)  # "proc"
-    proc_name = tokens.pop(0)[0]  # Nombre del procedimiento
-    proc_node = {"Procedure": {"name": proc_name, "body": []}}
+    proc_name = tokens.pop(0)[0]
     tokens.pop(0)  # "["
+    body = []
     while tokens and tokens[0][0] != "]":
-        proc_node["Procedure"]["body"].append(parse_instruction(tokens))
+        body.append(parse_instruction(tokens.pop(0)[0], tokens))
     tokens.pop(0)  # "]"
-    return proc_node
+    return {"Procedure": {"name": proc_name, "body": body}}
 
-def parse_instruction(tokens):
-    instr_node = {"Instruction": tokens.pop(0)[0]}
-    instr_node["Parameters"] = []
-    while tokens and tokens[0][1] in {'NUMBER', 'CONSTANT', 'IDENTIFIER', 'COLON'}:
+def parse_instruction(token, tokens):
+    instr_node = {"Instruction": token, "Parameters": []}
+    while tokens and tokens[0][1] in {'NUMBER', 'CONSTANT', 'IDENTIFIER'}:
         instr_node["Parameters"].append(tokens.pop(0)[0])
     return instr_node
 
-def parse_conditional(tokens):
-    cond_node = {"Conditional": {"type": tokens.pop(0)[0], "condition": None, "body": []}}
-    if tokens and tokens[0][1] == 'CONSTANT':
-        cond_node["Conditional"]["condition"] = tokens.pop(0)[0]
-    if tokens and tokens[0][1] == 'KEYWORD' and tokens[0][0] == 'then:':
+def parse_conditional(tokens, cond_type):
+    condition = tokens.pop(0)[0]
+    body = []
+    if tokens and tokens[0][0] == 'then:':
         tokens.pop(0)
-        cond_node["Conditional"]["body"].append(parse_instruction(tokens))
-    if tokens and tokens[0][1] == 'KEYWORD' and tokens[0][0] == 'else:':
+        body.append(parse_instruction(tokens.pop(0)[0], tokens))
+    if tokens and tokens[0][0] == 'else:':
         tokens.pop(0)
-        cond_node["Conditional"]["body"].append(parse_instruction(tokens))
-    return cond_node
+        body.append(parse_instruction(tokens.pop(0)[0], tokens))
+    return {"Conditional": {"type": cond_type, "condition": condition, "body": body}}
 
 robot_code = """
 |x y|
@@ -84,7 +110,8 @@ if: facing: #north then: [ move: 2 .] else: [ turn: #right . ]
 """
 
 tokens = tokenize_robot_language(robot_code)
-parse_tree = parse_program(tokens)
-if parse_tree:
-    import json
-    print(json.dumps(parse_tree, indent=2))
+print("Tokens Generados:", tokens)  # Agregar esta línea
+
+if tokens:
+    parse_tree = parse_program(tokens)
+    print("Árbol de Análisis Sintáctico:", parse_tree)  # Agregar esta línea

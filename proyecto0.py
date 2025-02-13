@@ -3,29 +3,29 @@
 
 # Se definen las reglas gramaticales del lenguaje del robot
 REGLAS_GRAMATICA = {
-    "program": ["definitions instructions"],
-    "definitions": ["variables | procedures"],
+    "program": ["definitiones instructiones"],
+    "definitiones": ["variables | procedimientos"],
     "variables": ["'|' variable_list '|'"],
-    "variable_list": ["identifier ',' variable_list", "identifier"],
-    "procedures": ["procedure procedures", "ε"],
-    "procedure": ["'proc' identifier parameter_list '[' block ']'"],
-    "parameter_list": ["':' identifier param_list", "ε"],
-    "param_list": ["'and' identifier ':' identifier param_list", "ε"],
-    "block": ["instruction block", "ε"],
-    "instructions": ["instruction instructions", "ε"],
-    "instruction": ["command", "assignment", "conditional", "loop", "procedure_call"],
-    "command": ["'move:' number 'inDir:' direction '.'", "'turn:' direction '.'", "'put:' identifier 'ofType:' object_type '.'", "'pick:' identifier 'ofType:' object_type '.'", "'goTo:' number 'with:' number '.'", "'nop.'"],
-    "assignment": ["identifier ':=' expression '.'"],
-    "expression": ["number", "identifier"],
-    "conditional": ["'if:' condition 'then:' '[' block ']' 'else:' '[' block ']'"],
+    "variable_lista": ["identificador ',' variable_lista", "identificador"],
+    "procedimientos": ["procedimiento procedimientos", "ε"],
+    "procedimiento": ["'proc' identificador parameter_list '[' bloque ']'"],
+    "parameter_list": ["':' identificador param_list", "ε"],
+    "param_list": ["'and' identificador ':' identificador param_list", "ε"],
+    "bloque": ["instruccion bloque", "ε"],
+    "instructiones": ["instruccion instructiones", "ε"],
+    "instruccion": ["command", "assignment", "conditional", "loop", "procedure_call"],
+    "command": ["'move:' number 'inDir:' direction '.'", "'turn:' direction '.'", "'put:' identificador 'ofType:' object_type '.'", "'pick:' identificador 'ofType:' object_type '.'", "'goTo:' number 'with:' number '.'", "'nop.'"],
+    "assignment": ["identificador ':=' expression '.'"],
+    "expression": ["number", "identificador"],
+    "conditional": ["'if:' condition 'then:' '[' bloque ']' 'else:' '[' bloque ']'"],
     "condition": ["'facing:' direction", "'canMove:' number 'inDir:' direction", "'canPut:' number 'ofType:' object_type", "'canPick:' number 'ofType:' object_type", "'not:' condition"],
-    "loop": ["'while:' condition 'do:' '[' block ']'"],
-    "procedure_call": ["identifier argument_list '.'"],
+    "loop": ["'while:' condition 'do:' '[' bloque ']'"],
+    "procedure_call": ["identificador argument_list '.'"],
     "argument_list": ["':' expression argument_list", "ε"],
-    "object_type": ["'#chips'", "'#balloons'"],
+    "objeto_tipo": ["'#chips'", "'#balloons'"],
     "direction": ["'#north'", "'#south'", "'#west'", "'#east'"],
     "number": ["[0-9]+"],
-    "identifier": ["[a-zA-Z_][a-zA-Z0-9_]*"]
+    "identificador": ["[a-zA-Z_][a-zA-Z0-9_]*"]
 }
 
 # Función para tokenizar el código del robot

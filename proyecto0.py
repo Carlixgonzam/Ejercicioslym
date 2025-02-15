@@ -5,45 +5,99 @@ REGLAS_GRAMATICA = {
     "variable_lista": ["{id} ',' variable_lista", "{id}"],
     "procedimientos": ["{procedimiento} procedimientos", "#lambda?"],
     "procedimiento": ["'proc' {id} param_lista '[' {bloque} ']'"],
-    #"parameter_list": ["':' {id} param_lista"],
+    # "parameter_list": ["':' {id} param_lista"],
     "param_lista": ["'and' | ':' {id} ':' {id} param_lista", "{bloque}"],
     "bloque": ["{instruccion} {bloque}", "#lambda?"],
     "instrucciones": ["{instruccion} instrucciones | #que puedo poner lambda?"],
     "instruccion": ["comando","asignar","condicional","ciclo","{llamada_procedimiento}",],
-    "comando": ["'move:' {number} 'inDir:' {direccion} '.'","'turn:' {direccion} '.'","'put:' {id} 'ofType:' {objeto_tipo} '.'","'pick:' {id} 'ofType:' {objeto_tipo} '.'","'goTo:' {number} 'with:' {number} '.'","'nop.'",],
+    "comando": [
+        "'move:' {number} 'inDir:' {direccion} '.'",
+        "'turn:' {direccion} '.'",
+        "'put:' {id} 'ofType:' {objeto_tipo} '.'",
+        "'pick:' {id} 'ofType:' {objeto_tipo} '.'",
+        "'goTo:' {number} 'with:' {number} '.'",
+        "'nop.'",],
     "asignar": ["{id} ':=' expre '.'"],
     "expre": ["{number}", "id"],
-    "condicional": ["'if:' {condicion} 'then:' '[' {bloque} ']' 'else:' '[' {bloque} ']'"],
-    "condicion": ["'facing:' {direccion}","'canMove:' {number} 'inDir:' {direccion}","'canPut:' {number} 'ofType:' {objeto_tipo}", "'canPick:' {number} 'ofType:' {objeto_tipo}","'not:' {condicion}",],
+    "condicional": [ "'if:' {condicion} 'then:' '[' {bloque} ']' 'else:' '[' {bloque} ']'"],
+    "condicion": [
+        "'facing:' {direccion}",
+        "'canMove:' {number} 'inDir:' {direccion}",
+        "'canPut:' {number} 'ofType:' {objeto_tipo}",
+        "'canPick:' {number} 'ofType:' {objeto_tipo}","'not:' {condicion}",],
     "ciclo": ["'while:' {condicion} 'do:' '[' {bloque} ']'"],
     "llamada_procedimiento": ["{id} {argument_lista} '.'"],
     "argument_lista": ["':' expre {argument_lista}", "{bloque}"],
     "objeto_tipo": ["'#chips'", "'#balloons'"],
     "direccion": ["'#north'", "'#south'", "'#west'", "'#east'"],
     "number": ["[0-9]+"],
-    "id": ["[a-zA-Z_][a-zA-Z0-9_]*"],}
+    "id": ["[a-zA-Z_][a-zA-Z0-9_]*"],
+}
 
+#corregir esta funcion del arbol
+#validacioens usarlas funciones dentro del arbol
+#Podemos hacer la lectura de los strings 
+#Podemos revisar tambien de manera recursiva los valores 
+#Tambien considerar corregir el arbol de tal manera que el problema solo sea sintaxis
+#considero semantica?
+#Funciones con valor y luego definir esos valores
+#Podemos implementar busquedas inorder para determinar los strings
+#Se puede analizar el string de manera que pueda leer todo hasta el ]
+
+
+def nodos_arbol(caracter):
+
+    seti = set()
+    for i in caracter:
+        valor = parseo(caracter)
+        seti.add(valor)
+
+    return seti
+
+
+def parseo(cadena):
+    cadena_guarda = ()
+    for i in cadena:
+        if cadena[i] == "[":
+            funcion = analizar_procedimiento(cadena[i])
+            cadena_guarda.__add__(funcion)
+        else:
+            return False
+
+
+    return cadena_guarda
+
+def parseo_constant(cadena):
+    for i in range(cadena):
+        if cadena[i] == analizar_instruccion:
+            const = cadena[i]
+    return const
+def ana_proc(cadena):
+    cadena_guarda = {}
+    while "[" == True:
+        if cadena in cadena_guarda:
+            continue
+        else:
+            return False
+    return cadena_guarda
 
 def obtener(codigo):
     lista = []
     i = 0
     while i < len(codigo):
         char = codigo[i]
-
         if char == " " or char == "\n" or char == "\t":
             i += 1
         elif (
             (char >= "a" and char <= "z")
             or (char >= "A" and char <= "Z")
-            or char == "_"
-        ):
+            or char == "_"):
             inicio = i
             while i < len(codigo) and (
                 (codigo[i] >= "a" and codigo[i] <= "z")
                 or (codigo[i] >= "A" and codigo[i] <= "Z")
                 or (codigo[i] >= "0" and codigo[i] <= "9")
-                or codigo[i] == "_"
-            ):
+                or codigo[i] == "_"):
                 i += 1
             valor = codigo[inicio:i]
             tipo = "PALABRA_RESERVADA"
@@ -72,6 +126,7 @@ def obtener(codigo):
         else:
             print("Erroooooor '{char}'")
             return None
+        
 
     return lista
 
@@ -90,18 +145,18 @@ def analizar_programa(lista):
     return arbol_sintactico, True
 
 
-# analizar la definición de un procedimiento
+# definición de un procedimiento
 def analizar_procedimiento(lista):
     nombre_proc = lista.pop(0)[0]
-    lista.pop(0)  # descarta el símbolo "[" que abre el cotigo
+    lista.pop(0)
     cuerpo = []
     while lista and lista[0][0] != "]":
         cuerpo.append(analizar_instruccion(lista.pop(0)[0], lista))
-    lista.pop(0)  # descarta el símbolo "]" que cierra el cuerpo
+    lista.pop(0)
     return {"Procedimiento": {"nombre": nombre_proc, "cuerpo": cuerpo}}
 
 
-# analizar una instrucción simple
+# instrucción simple
 def analizar_instruccion(punto, lista):
     nodoinstruccion = {"Instruccion": punto, "Parametros": []}
     while lista and lista[0][1] in {"NUMERO", "CONSTANTE", "IDENTIFICADOR"}:
@@ -109,7 +164,6 @@ def analizar_instruccion(punto, lista):
     return nodoinstruccion
 
 
-# analiz estructuras condicionales (if)
 def analizar_condicional(lista, tipo_condicional):
     condicion = lista.pop(0)[0]
     bloques = []
@@ -126,14 +180,13 @@ def analizar_condicional(lista, tipo_condicional):
         }
     }
 
-
 codigo_robot = """
 |x y|
 proc goNorth [ while: canMove: 1 inDir: #north do: [ move: 1 inDir: #north .] ]
 move: 2 inDir: #east .
 turn: #right .
 face: #north .
-jump: 3 toThe: #front .
+jump: 3 toThe: #front . 
 nop .
 repeatTimes: for: 5 repeat: [ move: 1 . ]
 if: facing: #north then: [ move: 2 .] else: [ turn: #right . ]

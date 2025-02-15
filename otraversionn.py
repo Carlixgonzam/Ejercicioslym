@@ -25,6 +25,24 @@ def definir(codigo):
     
     return lista
 
+    """
+    k = ["move:", "turn:", "face:", "put:", "pick:", "jump:", "if:", "while:", "for:", "nop", "proc:", "repeatTimes:", "goTo:", "canMove:", "canJump:", "facing:"]
+    d = ["#north", "#south", "#west", "#east", "#front", "#back", "#right", "#left"]
+    lista = []
+    lineas = code.split("\n")
+    
+    for linea in lineas:
+        k = linea.strip().split()
+        for palabra in k:
+            clean_word = palabra.strip(".") 
+            if clean_word in k or clean_word in d or clean_word in ["[", "]"]:
+                lista.append(clean_word)
+    
+    return lista
+    """
+
+
+
 def parse(t):
     stack = []
     for tata in t:
@@ -55,26 +73,11 @@ def analizar(cod):
 
 # Código de prueba
 code = """
-|nom x y one|
+|a b|
 
-proc putChips: n andBalloons: m [
-    |c, b|
-    c := n .
-    b := m .
-    put: c ofType: #chips . put: b ofType: #balloons .
-]
-
-proc goNorth [
-    while: canMove: 1 inDir: #north do: [ move: 1 inDir: #north . ]
-]
-
-proc goWest [
-    if: canMove: 1 inDir: #west then: [ move: 1 inDir: #west . ] else: [ nop . ]
-]
-
-[
-    goTo: 3 with: 3 .
-    putChips: 2 andBalloons: 1 .
+proc incomplete [
+    move: 2 inDir: #north .
+    if: canMove: 1 inDir: #west then: [ move: 1 inDir: #west .
 ]
 """
 

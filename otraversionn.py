@@ -73,12 +73,15 @@ def analizar(cod):
 
 # Código de prueba
 code = """
-|a b|
-
-proc incomplete [
-    move: 2 inDir: #north .
-    if: canMove: 1 inDir: #west then: [ move: 1 inDir: #west .
-]
+|x y|
+proc goNorth [ while: canMove: 1 inDir: #north do: [ move: 1 inDir: #north .] ]
+move: 2 inDir: #east .
+turn: #right .
+face: #north .
+jump: 3 toThe: #front . 
+nop .
+repeatTimes: for: 5 repeat: [ move: 1 . ]
+if: facing: #north then: [ move: 2 .] else: [ turn: #right . ]
 """
 
 if analizar(code):

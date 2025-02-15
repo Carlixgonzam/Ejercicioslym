@@ -1,11 +1,11 @@
-def validar_corchetes(code):
+def validar_corchetes(cod):
     #valido que los corchetes esten balanceados y analiza los bloques
     def revisar_balance(i, prof):
-        if i >= len(code):
+        if i >= len(cod):
             return prof == 0
-        if code[i] == '[':
+        if cod[i] == '[':
             return revisar_balance(i + 1, prof + 1)
-        elif code[i] == ']':
+        elif cod[i] == ']':
             if prof == 0:
                 return False
             return revisar_balance(i + 1, prof - 1)

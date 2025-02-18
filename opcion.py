@@ -5,9 +5,9 @@ def validar_corchetes(cod):
             stack.append(char)
         elif char == "]":
             if not stack:
-                return False  # Hay un ']' sin un '[' previo
+                return False 
             stack.pop()
-    return len(stack) == 0  # Debe estar vacío al final
+    return len(stack) == 0  
 
 
 def definir(codigo):
@@ -18,7 +18,7 @@ def definir(codigo):
     condiciones = {"facing:", "canPut:", "canPick:", "canMove:", "canJump:", "not:"}
     constantes = {"#north", "#south", "#west", "#east", "#front", "#back", "#right", "#left", "#balloons", "#chips"}
 
-    tokens = []
+    t = []
     palabra_actual = ""
     dentro_variables = False  
 
@@ -27,45 +27,45 @@ def definir(codigo):
 
         if char in "[]":
             if palabra_actual:
-                tokens.append(palabra_actual)
+                t.append(palabra_actual)
                 palabra_actual = ""
-            tokens.append(char)
+            t.append(char)
 
         elif char == "|":
             dentro_variables = not dentro_variables
             if palabra_actual:
-                tokens.append(palabra_actual)
+                t.append(palabra_actual)
                 palabra_actual = ""
 
         elif char == ",":
             if dentro_variables and palabra_actual:
-                tokens.append(palabra_actual)
+                t.append(palabra_actual)
                 palabra_actual = ""
 
         elif char.isspace():
             if palabra_actual:
-                tokens.append(palabra_actual)
+                t.append(palabra_actual)
                 palabra_actual = ""
 
         elif char == ":":
             palabra_actual += char
             if palabra_actual in instrucciones or palabra_actual in estructuras or palabra_actual in condiciones:
-                tokens.append(palabra_actual)
+                t.append(palabra_actual)
                 palabra_actual = ""
 
         elif char == ".":
             if palabra_actual:
-                tokens.append(palabra_actual)
+                t.append(palabra_actual)
                 palabra_actual = ""
 
         else:
             palabra_actual += char  
 
     if palabra_actual:
-        tokens.append(palabra_actual)
+        t.append(palabra_actual)
 
     tokens_filtrados = []
-    for token in tokens:
+    for token in t:
         if (token in comandos or token in instrucciones or token in estructuras or
                 token in condiciones or token in constantes or token in ["[", "]", ":=", "VARIABLES"]):
             tokens_filtrados.append(token)
@@ -76,7 +76,7 @@ def definir(codigo):
         elif token.isdigit():
             tokens_filtrados.append(token)
         else:
-            print(f"🚨 Error: Token inválido detectado → {token}")  
+            print(f"Error: Token inválido detectado → {token}")  
             return []  
 
     return tokens_filtrados
@@ -105,11 +105,11 @@ def parse(tokens):
 
         elif esperando_condicion and token in {"canMove:", "canJump:", "facing:", "not:"}:
             nodo_actual.append(token)
-            esperando_condicion = False  # ✅ Se encontró una condición, ahora esperar comando o bloque
+            esperando_condicion = False  #se encontró una condición, ahora esperar comando o bloque
 
         elif esperando_bloque and token in {"move:", "turn:", "face:", "put:", "pick:", "jump:", "goto:", "goTo:"}:
             nodo_actual.append(token)
-            esperando_bloque = False  # ✅ Se encontró un comando después de `if:`, `while:`, etc.
+            esperando_bloque = False  #se encontró un comando después de if:, while:, etc
 
         elif esperando_bloque and token == "[":
             esperando_bloque = False  
@@ -126,7 +126,7 @@ def parse(tokens):
 
         elif token == "]":
             if not stack:
-                print("🚨 Error: `]` sin `[` previo.")
+                print("Error: ] sin [ previo")
                 return False, None
             stack.pop()
             if stack:
@@ -136,7 +136,7 @@ def parse(tokens):
 
         elif token == "else:":
             if not stack or stack[-1][1] != "if:":
-                print("🚨 Error: `else:` sin un `if:` previo.")
+                print("Error: else: sin un if: previo.")
                 return False, None
             else_nodo = {"else:": []}
             stack[-1][0].append(else_nodo)
@@ -146,27 +146,27 @@ def parse(tokens):
             nodo_actual.append(token)
 
     if len(stack) <0:
-        print("🚨 Error: Bloques abiertos sin cerrar.")
+        print("Error: Bloques abiertos sin cerrar")
         return False, None
 
     return True, raiz
 def analizar(cod):
     if not validar_corchetes(cod):
-        print("🚨 Error: Los bloques de código no están balanceados.")
+        print("Error: Los bloques de código no están balanceados")
         return False, None
     
-    tokens = definir(cod)
+    ta = definir(cod)
     
-    print("🔹 Tokens Generados:", tokens)  
+    print("t Generados:", ta)  
     
-    if not tokens:
-        print("🚨 Error: No se detectaron tokens válidos en el código.")
+    if not ta:
+        print("Error: No se detectaron checks válidos en el código")
         return False, None
 
-    valido, arbol = parse(tokens)
+    valido, arbol = parse(ta)
     
     if not valido:
-        print("🚨 Error: Estructura del código inválida.")
+        print("Error: Estructura del código inválida")
         return False, None
 
     return True, arbol
@@ -209,9 +209,9 @@ proc goWest [
 es_valido, arbol_parseo = analizar(code)
 
 if es_valido:
-    print("✅ Código válido")
+    print("Código válido")
     print("\nÁrbol de parseo:")
     imprimir_arbol(arbol_parseo)
 else:
-    print("❌ Código inválido")
+    print("Código inválido")
 
